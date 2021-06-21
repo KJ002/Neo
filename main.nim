@@ -19,6 +19,8 @@ proc getBodies(pageMax: int = 1): seq[JsonNode] =
             result.add body
 
 proc parseBodies(data: JsonNode): seq[string] =
+    result.add data["id"].getStr
+
     result.add data["name"].getStr
 
     if data["is_potentially_hazardous_asteroid"].getBool:
@@ -35,7 +37,7 @@ proc parseBodies(data: JsonNode): seq[string] =
 
 proc main() =
     var table: TerminalTable
-    table.add "Name", "Hazardous", "Diameter (m)"
+    table.add "ID", "Name", "Hazardous", "Diameter (m)"
 
     for i in getBodies():
         table.add(parseBodies(i))
