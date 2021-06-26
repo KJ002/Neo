@@ -3,4 +3,4 @@ Neo is a terminal wrapper for Nasa's [Near Earth Object](https://cneos.jpl.nasa.
 
 ## Compiling
 - [Install nim](https://nim-lang.org/install.html)
-- Run `nim c -d:ssl main.nim` (must be compiled with `ssl` to requests with the `https` schema)
+- Run `nim c -d:ssl main.nim` (must be compiled with `ssl` to request with the `https` schema)
