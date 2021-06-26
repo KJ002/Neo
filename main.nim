@@ -1,24 +1,29 @@
 import strutils, json, httpclient, nancy, constants, math
 
-proc getPage(pageNum: int = 0): JsonNode =
-    let
-        client = newHttpClient()
-        data = parseJson(client.getContent(
-                "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=$#&page=$#" %
-                [TOKEN, $pageNum]))
+type
+    Client = object
+        http: HttpClient
+        table: TerminalTable
 
-    return data
+proc init(self: var Client) =
+    self.http = newHttpClient()
+    self.table.add "ID", "Name", "Hazardous", "Diameter (m)"
 
-proc getBodies(pageMax: int = 1): seq[JsonNode] =
+proc getPage(self: var Client, pageNum: int = 0): JsonNode =
+    return parseJson(self.http.getContent(
+                    "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=$#&page=$#" %
+                    [TOKEN, $pageNum]))
+
+proc getBodies(self: var Client, pageMax: int = 1): seq[JsonNode] =
     var data: JsonNode
 
     for i in 0..pageMax-1:
-        data = getPage i
+        data = self.getPage i
 
         for body in data["near_earth_objects"].getElems():
             result.add body
 
-proc parseBodies(data: JsonNode): seq[string] =
+proc parseBodies(self: var Client, data: JsonNode): seq[string] =
     result.add data["id"].getStr
 
     result.add data["name"].getStr
@@ -35,14 +40,16 @@ proc parseBodies(data: JsonNode): seq[string] =
 
     result.add $(round diamerter).toInt
 
+proc populateTable(self: var Client) =
+    for i in self.getBodies():
+        self.table.add(self.parseBodies(i))
+
 proc main() =
-    var table: TerminalTable
-    table.add "ID", "Name", "Hazardous", "Diameter (m)"
+    var neoClient = Client()
+    neoClient.init()
+    neoClient.populateTable()
 
-    for i in getBodies():
-        table.add(parseBodies(i))
-
-    table.echoTableSeps(80, boxSeps)
+    neoClient.table.echoTableSeps(80, boxSeps)
 
 when isMainModule:
     main()
